@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cabeça_da_Isabella.js</title>
+
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="libs/tex-svg.js"></script>
+  <script src="libs/p5.min.js"></script>
+  <script src="sketch.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+  <div id="canvas-container" style="container">
+    <div id="sketch"></div>
+  </div>
+
+  <div id="help-overlay">
+    <div class="help-box">
+      <div class="help-header">
+        <span>Teclas Mapeadas</span>
+        <button id="help-close">×</button>
+      </div>
+      <ul>
+        <li><strong>h</strong> - Mostra ou esconde esse menu de ajuda</li>
+        <li><strong>←→↑↓</strong> - Move o cursor</li>
+        <li><strong>1-9</strong> - Coloca um número no cursor</li>
+        <li><strong>L</strong> - Trava/libera a edição dos números</li>
+        <li><strong>Backspace</strong> - Deleta o número no cursor</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>
