@@ -5,10 +5,11 @@ let grid = [];
 let gridLocked = [];
 
 let tips = [];
-let strongTips = [];
 let tipRowMap = [];
 let tipColMap = [];
 let tipSquMap = [];
+let strongTips = new Map();
+let discardedTips = new Map();
 
 let gridSide;
 let gridLeftPad;
@@ -17,16 +18,13 @@ let cellSide;
 
 let valid = true;
 
-let puzzle_facil   = JSON.parse('[[3,9,2,null,6,null,null,null,1],[4,null,null,null,null,null,null,7,null],[1,null,5,null,null,null,null,3,null],[2,5,null,3,null,null,6,null,null],[null,null,3,null,9,null,7,null,5],[6,null,9,4,5,null,8,null,null],[null,null,6,null,null,8,1,null,null],[null,null,1,9,null,null,null,null,null],[null,2,4,null,null,3,9,6,null]]');
-let puzzle_medio   = JSON.parse('[[2,null,null,null,1,null,null,null,9],[null,5,null,3,null,null,null,1,null],[null,null,null,null,4,null,null,null,null],[null,null,null,4,null,6,null,7,null],[9,null,4,null,null,null,2,null,6],[null,8,null,9,null,3,null,null,null],[null,null,null,null,7,null,null,null,null],[null,7,null,null,null,4,null,5,null],[5,null,null,null,9,null,null,null,null]]');
-let puzzle_dificil = JSON.parse('[[null,3,null,null,6,1,null,null,null],[1,4,null,5,null,null,null,null,null],[null,null,2,null,8,null,null,null,null],[null,1,null,null,null,null,null,null,3],[6,null,5,null,3,null,8,null,7],[9,null,null,null,null,null,null,4,null],[null,null,null,null,1,null,6,null,null],[null,null,null,null,null,5,null,9,4],[null,null,null,9,4,null,null,5,null]]');
+let puzzle_facil    = JSON.parse('[[3,9,2,null,6,null,null,null,1],[4,null,null,null,null,null,null,7,null],[1,null,5,null,null,null,null,3,null],[2,5,null,3,null,null,6,null,null],[null,null,3,null,9,null,7,null,5],[6,null,9,4,5,null,8,null,null],[null,null,6,null,null,8,1,null,null],[null,null,1,9,null,null,null,null,null],[null,2,4,null,null,3,9,6,null]]');
+let puzzle_medio    = JSON.parse('[[2,null,null,null,1,null,null,null,9],[null,5,null,3,null,null,null,1,null],[null,null,null,null,4,null,null,null,null],[null,null,null,4,null,6,null,7,null],[9,null,4,null,null,null,2,null,6],[null,8,null,9,null,3,null,null,null],[null,null,null,null,7,null,null,null,null],[null,7,null,null,null,4,null,5,null],[5,null,null,null,9,null,null,null,null]]');
+let puzzle_dificil1 = JSON.parse('[[null,3,null,null,6,1,null,null,null],[1,4,null,5,null,null,null,null,null],[null,null,2,null,8,null,null,null,null],[null,1,null,null,null,null,null,null,3],[6,null,5,null,3,null,8,null,7],[9,null,null,null,null,null,null,4,null],[null,null,null,null,1,null,6,null,null],[null,null,null,null,null,5,null,9,4],[null,null,null,9,4,null,null,5,null]]');
+let puzzle_dificil2 = JSON.parse('[[null,4,null,null,2,5,null,8,null],[3,null,null,null,null,null,null,null,6],[null,null,null,1,null,6,null,null,null],[8,null,3,null,null,null,1,null,null],[1,null,null,null,null,null,null,null,2],[null,null,4,null,null,null,3,null,7],[null,null,null,6,null,7,null,null,null],[9,null,null,null,null,null,null,null,3],[null,7,null,8,4,null,null,5,null]]');
 
-function test() {
-  for (let i = 0; i < 9; i++) {
-    let x = floor(i/3)*3;
-    let y = (i%3)*3;
-    console.log(x*3, y*3);
-  }
+function cellID(i, j, n) {
+  return 100*i + 10*j + n;
 }
 
 function uniqueByValue(a) {
@@ -99,17 +97,20 @@ function isValidSudoku() {
   for (let i = 0; i < 9; i++) {
     let row = retrieveRow(i);
     if (hasDuplicates(row)) {
+      console.log(`row ${i} has duplicates`);
       return false;
     }
 
     let column = retrieveCol(i);
     if (hasDuplicates(column)) {
+      console.log(`column ${i} has duplicates`);
       return false;
     }
     let x = floor(i/3);
     let y = i%3;
     let square = retrieveSquare(x, y);
     if (hasDuplicates(square)) {
+      console.log(`square at (${x}, %{y}) has duplicates`);
       return false;
     }
   }
@@ -120,12 +121,14 @@ function isValidSudoku() {
       if (grid[i][j] == null) {
         let count = 0;
         for (let n = 0; n < 9; n++) {
-          if (tips[i][j][n] != null) {
+          if (tips[i][j][n] != null &&
+              isDiscarded(i, j, n) === false) {
             count++;
           }
         }
 
         if (count == 0) {
+          console.log(`cell (${i}, ${j}) can't contain any number`);
           return false;
         }
       }
@@ -150,13 +153,26 @@ function updateTipsAtPos(x, y, n) {
   }
 }
 
+function createGrid() {
+  grid = [];
+  gridLocked = [];
+  for (let i = 0; i < 9; i++) {
+    grid.push([]);
+    gridLocked.push([]);
+    for (let j = 0; j < 9; j++) {
+      grid[i].push(null);
+      gridLocked[i].push(false);
+    }
+  }
+}
+
 function createTips() {
   tips = [];
   for (let i = 0; i < 9; i++) {
     tips.push([]);
     for (let j = 0; j < 9; j++) {
       tips[i].push([]);
-      for (let n = 1; n <= 9; n++) {
+      for (let n = 0; n < 9; n++) {
         tips[i][j].push(n);
       }
     }
@@ -166,8 +182,27 @@ function createTips() {
 function resetTips() {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
-      for (let n = 1; n <= 9; n++) {
-        tips[i][j][n] = n;
+      for (let n = 0; n < 9; n++) {
+        tips[i][j][n] = n + 1;
+      }
+    }
+  }
+}
+
+function clearGrid() {
+  valid = true;
+  strongTips = new Map();
+  discardedTips = new Map();
+  tipRowMap = [];
+  tipColMap = [];
+  tipSquMap = [];
+
+  for (let i = 0; i < 9; i++) {
+    for (let j = 0; j < 9; j++) {
+      grid[i][j] = null;
+      gridLocked[i][j] = false;
+      for (let n = 0; n < 9; n++) {
+        tips[i][j][n] = n + 1;
       }
     }
   }
@@ -190,19 +225,27 @@ class Cell {
     this.j = j;
     this.number = number;
   }
+
+  id() {
+    return cellID(this.i, this.j, this.number);
+  }
+
+  samePlace(other) {
+    return this.i == other.i && this.j == other.j;
+  }
 }
 
 function getRowCellMap(i) {
-  let map = [];
+  let map = new Map();
   for (let j = 0; j < 9; j++) {
     if (grid[i][j] == null) {
       for (let n = 0; n < 9; n++) {
         if (tips[i][j][n] != null) {
           let c = new Cell(i, j, n);
-          if (map[n] === undefined) {
-            map[n] = [c];
+          if (map.has(n)) {
+            map.get(n).push(c);
           } else {
-            map[n].push(c);
+            map.set(n, [c]);
           }
         }
       }
@@ -212,16 +255,16 @@ function getRowCellMap(i) {
 }
 
 function getColCellMap(j) {
-  let map = [];
+  let map = new Map();
   for (let i = 0; i < 9; i++) {
     if (grid[i][j] == null) {
       for (let n = 0; n < 9; n++) {
         if (tips[i][j][n] != null) {
           let c = new Cell(i, j, n);
-          if (map[n] === undefined) {
-            map[n] = [c];
+          if (map.has(n)) {
+            map.get(n).push(c);
           } else {
-            map[n].push(c);
+            map.set(n, [c]);
           }
         }
       }
@@ -234,17 +277,17 @@ function getSquCellMap(squ) {
   let firstX = floor(squ/3)*3;
   let firstY = (squ%3)*3;
 
-  let map = [];
+  let map = new Map();
   for (let i = firstX; i < firstX+3; i++) {
     for (let j = firstY; j < firstY+3; j++) {
       if (grid[i][j] == null) {
         for (let n = 0; n < 9; n++) {
           if (tips[i][j][n] != null) {
             let c = new Cell(i, j, n);
-            if (map[n] === undefined) {
-              map[n] = [c];
+            if (map.has(n)) {
+              map.get(n).push(c);
             } else {
-              map[n].push(c);
+              map.set(n, [c]);
             }
           }
         }
@@ -270,84 +313,163 @@ function updateTipMap() {
   }
 }
 
-function update() {
-  valid = isValidSudoku();
-  if (valid) {
-    updateTips();
-    updateTipMap();
-    updateStrongTips();
+function discardNumber(i, j, n) {
+  let id = cellID(i,j,n);
+  discardedTips.set(id, true);
+}
+
+function discardAllBut(cells, numList) {
+  for (let i = 0; i < cells.length; i++) {
+    let cell = cells[i];
+    for (let n = 0; n < 9; n++) {
+      if (tips[cell.i][cell.j][n] != null &&
+         numList.includes(n) == false) {
+         discardNumber(cell.i, cell.j, n);
+      }
+    }
   }
+}
+
+function discardOnly(cells, numList) {
+  for (let i = 0; i < cells.length; i++) {
+    let cell = cells[i];
+    for (let n = 0; n < 9; n++) {
+      if (tips[cell.i][cell.j][n] != null &&
+         numList.includes(n) == false) {
+         discardNumber(i, j, n);
+      }
+    }
+  }
+}
+
+function cellOrder(a, b) {
+  return a.id() - b.id();
+}
+
+function sameCells(list_A, list_B) {
+  if (list_A.length != list_B.length) {
+    return false;
+  }
+  let len = list_A.length
+  list_A.sort(cellOrder);
+  list_B.sort(cellOrder);
+  for (let i = 0; i < len; i++) {
+    if (list_A[i].samePlace(list_B[i]) == false) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function strategy2NumsIn2CellsFind(map) {
+  let eligible = [];
+  for (let n = 0; n < 9; n++) {
+    if (map.has(n)) {
+      let tipList = map.get(n);
+      if (tipList.length == 2) {
+        eligible.push([n, tipList]);
+      }
+    }
+  }
+
+  if (eligible.length <= 1) {
+    return;
+  }
+
+  for (let i = 0; i < eligible.length; i++) {
+    for (let j = i+1; j < eligible.length; j++) {
+      let list_A = eligible[i][1];
+      let list_B = eligible[j][1];
+      if (sameCells(list_A, list_B)) {
+        let n1 = eligible[i][0];
+        let n2 = eligible[j][0];
+        discardAllBut(list_A, [n1, n2]);
+      }
+    }
+  }
+}
+
+function strategy2NumsIn2Cells() {
+  for (let i = 0; i < 9; i++) {
+    strategy2NumsIn2CellsFind(tipRowMap[i]);
+    strategy2NumsIn2CellsFind(tipColMap[i]);
+    strategy2NumsIn2CellsFind(tipSquMap[i]);
+  }
+}
+
+function updateDiscardedTips() {
+  discardedTips = new Map();
+  strategy2NumsIn2Cells();
+}
+
+function update() {
+  updateTips();
+  updateTipMap();
+  updateDiscardedTips();
+  updateStrongTips();
+  valid = isValidSudoku();
 }
 
 function strategyUniqueFind(map) {
-  out = [];
   for (let n = 0; n < 9; n++) {
-    if (map[n] != undefined && map[n].length === 1) {
-      out.push(map[n][0]);
+    if (map.has(n) ) {
+      let n_tips = map.get(n);
+      if (n_tips.length === 1) {
+        let tip = n_tips[0];
+        strongTips.set(tip.id(), tip);
+      }
     }
   }
-  return out;
 }
 
 function strategyUnique() {
-  let out = [];
   for (let i = 0; i < 9; i++) {
-    let row = strategyUniqueFind(tipRowMap[i]);
-    let col = strategyUniqueFind(tipColMap[i]);
-    let squ = strategyUniqueFind(tipSquMap[i]);
-    out = out.concat(row).concat(col).concat(squ);
+    strategyUniqueFind(tipRowMap[i]);
+    strategyUniqueFind(tipColMap[i]);
+    strategyUniqueFind(tipSquMap[i]);
   }
-  return out;
 }
 
-function strategyLoneNumber() {
-  let out = [];
+function strategyLoneNumber(out) {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
       let count = 0;
       let number = null;
       for (let n = 0; n < 9; n++) {
-        if (tips[i][j][n] != null) {
+        if (tips[i][j][n] != null &&
+            isDiscarded(i, j, n) === false) {
           count++;
           number = n;
         }
       }
 
       if (count == 1) {
-        out.push(new Cell(i, j, number));
+        let c = new Cell(i, j, number);
+        strongTips.set(c.id(), c);
       }
     }
   }
-  return out;
-}
-
-function strategy2NumsIn2CellsRow(i) {
-}
-
-function strategy2NumsIn2Cells() {
 }
 
 function updateStrongTips() {
-  let out = [];
-  out = out.concat(strategyUnique());
-  out = out.concat(strategyLoneNumber());
-  strongTips = uniqueByValue(out);
+  strongTips = new Map();
+  strategyUnique();
+  strategyLoneNumber();
+}
+
+function isDiscarded(x, y, n) {
+  let id = cellID(x, y, n);
+  return discardedTips.has(id);
 }
 
 function hasStrongTip(x, y, n) {
-  for (let i = 0; i < strongTips.length; i++) {
-    let tip = strongTips[i];
-    if (tip.i == x && tip.j == y && tip.number == n) {
-      return true;
-    }
-  }
-  return false;
+  let id = cellID(x, y, n);
+  return strongTips.has(id);
 }
 
 function autofill() {
-  for (let i = 0; i < strongTips.length; i++) {
-    let tip = strongTips[i];
-    if (grid[tip.i][tip.j] == null) {
+  for (const tip of strongTips.values()) {
+    if (grid[tip.i][tip.j] === null) {
       grid[tip.i][tip.j] = tip.number + 1;
     }
   }
@@ -371,12 +493,6 @@ function placeAtCursor(number) {
   }
 }
 
-function debug() {
-  console.log("tipColMap", tipColMap);
-  console.log("tipRowMap", tipRowMap);
-  console.log("tipSquMap", tipSquMap);
-}
-
 function keyHandler(e) {
   if (e.key === "ArrowUp") {
     cursorY = cap(cursorY-1);
@@ -397,9 +513,14 @@ function keyHandler(e) {
     autofill();
   }
   if (e.key === "p") {
-    grid = puzzle_medio;
+    clearGrid();
+    grid = structuredClone(puzzle_dificil1);
     update();
     lockNumbers();
+  }
+  if (e.key === "c") {
+    clearGrid();
+    update();
   }
 
   // Javascript is not a serious language.
@@ -439,10 +560,6 @@ function keyHandler(e) {
       break;
   }
 
-  if (e.key === "d") {
-    debug();
-  }
-
   if (e.key.toLowerCase() === "h") {
     const overlay = document.getElementById("help-overlay");
     overlay.style.display = (overlay.style.display === "flex") ? "none" : "flex";
@@ -466,16 +583,8 @@ function setup() {
   background(220);
   frameRate(fps);
 
-  for (let i = 0; i < 9; i++) {
-    grid.push([]);
-    gridLocked.push([]);
-    for (let j = 0; j < 9; j++) {
-      grid[i].push(null);
-      gridLocked[i].push(false);
-    }
-  }
-
   createTips();
+  createGrid();
   resizeGrid();
   textAlign(CENTER, CENTER);
 }
@@ -510,6 +619,11 @@ function drawTips(i, j) {
         noFill();
         circle(lilX+miniSide/2, lilY+miniSide/2, miniSide*0.8)
         fill(128);
+      }
+      if (isDiscarded(i, j, n)) {
+        let pad_top = miniSide*0.2;
+        let pad_bottom = miniSide*0.8;
+        line(lilX+pad_top, lilY+pad_top, lilX+pad_bottom, lilY+pad_bottom);
       }
       textSize(10);
       text(str(n+1), lilX+miniSide/2, lilY+miniSide/2);
