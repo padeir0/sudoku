@@ -18,10 +18,14 @@ let cellSide;
 
 let valid = true;
 
-let puzzle_facil    = JSON.parse('[[3,9,2,null,6,null,null,null,1],[4,null,null,null,null,null,null,7,null],[1,null,5,null,null,null,null,3,null],[2,5,null,3,null,null,6,null,null],[null,null,3,null,9,null,7,null,5],[6,null,9,4,5,null,8,null,null],[null,null,6,null,null,8,1,null,null],[null,null,1,9,null,null,null,null,null],[null,2,4,null,null,3,9,6,null]]');
-let puzzle_medio    = JSON.parse('[[2,null,null,null,1,null,null,null,9],[null,5,null,3,null,null,null,1,null],[null,null,null,null,4,null,null,null,null],[null,null,null,4,null,6,null,7,null],[9,null,4,null,null,null,2,null,6],[null,8,null,9,null,3,null,null,null],[null,null,null,null,7,null,null,null,null],[null,7,null,null,null,4,null,5,null],[5,null,null,null,9,null,null,null,null]]');
-let puzzle_dificil1 = JSON.parse('[[null,3,null,null,6,1,null,null,null],[1,4,null,5,null,null,null,null,null],[null,null,2,null,8,null,null,null,null],[null,1,null,null,null,null,null,null,3],[6,null,5,null,3,null,8,null,7],[9,null,null,null,null,null,null,4,null],[null,null,null,null,1,null,6,null,null],[null,null,null,null,null,5,null,9,4],[null,null,null,9,4,null,null,5,null]]');
-let puzzle_dificil2 = JSON.parse('[[null,4,null,null,2,5,null,8,null],[3,null,null,null,null,null,null,null,6],[null,null,null,1,null,6,null,null,null],[8,null,3,null,null,null,1,null,null],[1,null,null,null,null,null,null,null,2],[null,null,4,null,null,null,3,null,7],[null,null,null,6,null,7,null,null,null],[9,null,null,null,null,null,null,null,3],[null,7,null,8,4,null,null,5,null]]');
+let puzzle_facil     = JSON.parse('[[3,9,2,null,6,null,null,null,1],[4,null,null,null,null,null,null,7,null],[1,null,5,null,null,null,null,3,null],[2,5,null,3,null,null,6,null,null],[null,null,3,null,9,null,7,null,5],[6,null,9,4,5,null,8,null,null],[null,null,6,null,null,8,1,null,null],[null,null,1,9,null,null,null,null,null],[null,2,4,null,null,3,9,6,null]]');
+let puzzle_medio     = JSON.parse('[[2,null,null,null,1,null,null,null,9],[null,5,null,3,null,null,null,1,null],[null,null,null,null,4,null,null,null,null],[null,null,null,4,null,6,null,7,null],[9,null,4,null,null,null,2,null,6],[null,8,null,9,null,3,null,null,null],[null,null,null,null,7,null,null,null,null],[null,7,null,null,null,4,null,5,null],[5,null,null,null,9,null,null,null,null]]');
+// não sei resolver :(
+let puzzle_dificil1  = JSON.parse('[[null,3,null,null,6,1,null,null,null],[1,4,null,5,null,null,null,null,null],[null,null,2,null,8,null,null,null,null],[null,1,null,null,null,null,null,null,3],[6,null,5,null,3,null,8,null,7],[9,null,null,null,null,null,null,4,null],[null,null,null,null,1,null,6,null,null],[null,null,null,null,null,5,null,9,4],[null,null,null,9,4,null,null,5,null]]');
+let puzzle_dificil2  = JSON.parse('[[null,4,null,null,2,5,null,8,null],[3,null,null,null,null,null,null,null,6],[null,null,null,1,null,6,null,null,null],[8,null,3,null,null,null,1,null,null],[1,null,null,null,null,null,null,null,2],[null,null,4,null,null,null,3,null,7],[null,null,null,6,null,7,null,null,null],[9,null,null,null,null,null,null,null,3],[null,7,null,8,4,null,null,5,null]]');
+// precisa de naked-pairs e aligned-pairs
+let puzzle_dificil3  = JSON.parse('[[null,1,6,8,null,null,9,null,5],[null,5,2,6,null,null,null,3,null],[null,null,9,5,null,null,null,null,null],[null,null,null,4,9,null,7,5,null],[null,null,null,2,null,null,null,null,null],[null,9,null,null,null,3,null,null,null],[1,null,5,3,7,null,8,2,null],[null,null,null,null,8,null,null,null,7],[null,null,null,null,null,null,5,null,4]]');
+let puzzle_backtrack = JSON.parse('[[null,null,null,null,null,null,5,null,null],[null,null,null,null,null,9,null,null,null],[null,null,1,null,4,null,null,2,null],[null,null,null,5,null,null,null,null,null],[null,null,2,null,null,null,null,1,4],[null,3,null,7,null,null,null,null,null],[null,null,null,null,1,null,null,null,null],[null,8,null,null,null,null,7,null,null],[null,5,null,null,null,null,3,null,9]]');
 
 function cellID(i, j, n) {
   return 100*i + 10*j + n;
@@ -361,7 +365,7 @@ function sameCells(list_A, list_B) {
   return true;
 }
 
-function strategy2NumsIn2CellsFind(map) {
+function _strategyHiddenPairs(map) {
   let eligible = [];
   for (let n = 0; n < 9; n++) {
     if (map.has(n)) {
@@ -389,17 +393,17 @@ function strategy2NumsIn2CellsFind(map) {
   }
 }
 
-function strategy2NumsIn2Cells() {
+function strategyHiddenPairs() {
   for (let i = 0; i < 9; i++) {
-    strategy2NumsIn2CellsFind(tipRowMap[i]);
-    strategy2NumsIn2CellsFind(tipColMap[i]);
-    strategy2NumsIn2CellsFind(tipSquMap[i]);
+    _strategyHiddenPairs(tipRowMap[i]);
+    _strategyHiddenPairs(tipColMap[i]);
+    _strategyHiddenPairs(tipSquMap[i]);
   }
 }
 
 function updateDiscardedTips() {
   discardedTips = new Map();
-  strategy2NumsIn2Cells();
+  strategyHiddenPairs();
 }
 
 function update() {
@@ -410,7 +414,7 @@ function update() {
   valid = isValidSudoku();
 }
 
-function strategyUniqueFind(map) {
+function _strategyLastRemainingCell(map) {
   for (let n = 0; n < 9; n++) {
     if (map.has(n) ) {
       let n_tips = map.get(n);
@@ -422,15 +426,15 @@ function strategyUniqueFind(map) {
   }
 }
 
-function strategyUnique() {
+function strategyLastRemainingCell() {
   for (let i = 0; i < 9; i++) {
-    strategyUniqueFind(tipRowMap[i]);
-    strategyUniqueFind(tipColMap[i]);
-    strategyUniqueFind(tipSquMap[i]);
+    _strategyLastRemainingCell(tipRowMap[i]);
+    _strategyLastRemainingCell(tipColMap[i]);
+    _strategyLastRemainingCell(tipSquMap[i]);
   }
 }
 
-function strategyLoneNumber(out) {
+function strategyLastPossibleNumber(out) {
   for (let i = 0; i < 9; i++) {
     for (let j = 0; j < 9; j++) {
       let count = 0;
@@ -453,8 +457,8 @@ function strategyLoneNumber(out) {
 
 function updateStrongTips() {
   strongTips = new Map();
-  strategyUnique();
-  strategyLoneNumber();
+  strategyLastRemainingCell();
+  strategyLastPossibleNumber();
 }
 
 function isDiscarded(x, y, n) {
@@ -514,7 +518,7 @@ function keyHandler(e) {
   }
   if (e.key === "p") {
     clearGrid();
-    grid = structuredClone(puzzle_dificil1);
+    grid = structuredClone(puzzle_dificil3);
     update();
     lockNumbers();
   }
