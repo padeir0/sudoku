@@ -18,16 +18,18 @@ let cellSide;
 
 let valid = true;
 
+// unsolved
+let puzzle_dificil1  = JSON.parse('[[null,3,null,null,6,1,null,null,null],[1,4,null,5,null,null,null,null,null],[null,null,2,null,8,null,null,null,null],[null,1,null,null,null,null,null,null,3],[6,null,5,null,3,null,8,null,7],[9,null,null,null,null,null,null,4,null],[null,null,null,null,1,null,6,null,null],[null,null,null,null,null,5,null,9,4],[null,null,null,9,4,null,null,5,null]]');
+
+// solved
 let puzzle_facil     = JSON.parse('[[3,9,2,null,6,null,null,null,1],[4,null,null,null,null,null,null,7,null],[1,null,5,null,null,null,null,3,null],[2,5,null,3,null,null,6,null,null],[null,null,3,null,9,null,7,null,5],[6,null,9,4,5,null,8,null,null],[null,null,6,null,null,8,1,null,null],[null,null,1,9,null,null,null,null,null],[null,2,4,null,null,3,9,6,null]]');
 let puzzle_medio     = JSON.parse('[[2,null,null,null,1,null,null,null,9],[null,5,null,3,null,null,null,1,null],[null,null,null,null,4,null,null,null,null],[null,null,null,4,null,6,null,7,null],[9,null,4,null,null,null,2,null,6],[null,8,null,9,null,3,null,null,null],[null,null,null,null,7,null,null,null,null],[null,7,null,null,null,4,null,5,null],[5,null,null,null,9,null,null,null,null]]');
-// não sei resolver :(
-let puzzle_dificil1  = JSON.parse('[[null,3,null,null,6,1,null,null,null],[1,4,null,5,null,null,null,null,null],[null,null,2,null,8,null,null,null,null],[null,1,null,null,null,null,null,null,3],[6,null,5,null,3,null,8,null,7],[9,null,null,null,null,null,null,4,null],[null,null,null,null,1,null,6,null,null],[null,null,null,null,null,5,null,9,4],[null,null,null,9,4,null,null,5,null]]');
 let puzzle_dificil2  = JSON.parse('[[null,4,null,null,2,5,null,8,null],[3,null,null,null,null,null,null,null,6],[null,null,null,1,null,6,null,null,null],[8,null,3,null,null,null,1,null,null],[1,null,null,null,null,null,null,null,2],[null,null,4,null,null,null,3,null,7],[null,null,null,6,null,7,null,null,null],[9,null,null,null,null,null,null,null,3],[null,7,null,8,4,null,null,5,null]]');
-// precisa de naked-pairs e aligned-pairs
 let puzzle_dificil3  = JSON.parse('[[null,1,6,8,null,null,9,null,5],[null,5,2,6,null,null,null,3,null],[null,null,9,5,null,null,null,null,null],[null,null,null,4,9,null,7,5,null],[null,null,null,2,null,null,null,null,null],[null,9,null,null,null,3,null,null,null],[1,null,5,3,7,null,8,2,null],[null,null,null,null,8,null,null,null,7],[null,null,null,null,null,null,5,null,4]]');
 let puzzle_backtrack = JSON.parse('[[null,null,null,null,null,null,5,null,null],[null,null,null,null,null,9,null,null,null],[null,null,1,null,4,null,null,2,null],[null,null,null,5,null,null,null,null,null],[null,null,2,null,null,null,null,1,4],[null,3,null,7,null,null,null,null,null],[null,null,null,null,1,null,null,null,null],[null,8,null,null,null,null,7,null,null],[null,5,null,null,null,null,3,null,9]]');
-
-let puzzle_master = JSON.parse('[[4,2,5,9,3,1,6,7,8],[9,1,6,8,7,4,5,3,2],[7,8,3,2,5,6,9,1,4],[6,null,null,null,null,5,2,4,3],[2,5,null,null,null,3,null,null,9],[3,null,null,null,2,9,null,null,null],[5,null,null,null,9,8,null,null,7],[1,null,null,null,null,7,8,null,null],[8,6,7,null,null,2,null,9,null]]');
+let puzzle_hard = JSON.parse('[[null,1,6,8,null,null,9,null,5],[null,5,2,6,null,null,null,3,null],[null,null,9,5,null,null,null,null,null],[null,null,null,4,9,null,7,5,null],[null,null,null,2,null,null,null,null,null],[null,9,null,null,null,3,null,null,null],[1,null,5,3,7,null,8,2,null],[null,null,null,null,8,null,null,null,7],[null,null,null,null,null,null,5,null,4]]');
+let puzzle_expert = JSON.parse('[[7,null,null,null,null,null,null,null,2],[null,null,null,7,8,null,null,null,1],[null,3,9,5,null,null,null,null,null],[3,null,null,null,null,null,null,7,null],[9,null,4,null,null,null,null,null,null],[null,null,null,null,null,null,6,null,5],[null,null,null,null,null,3,4,null,null],[null,null,6,null,null,4,null,2,null],[null,null,null,6,7,9,null,null,null]]');
+let puzzle_master = JSON.parse('[[4,null,null,null,null,1,null,null,8],[null,null,null,8,null,null,5,3,null],[7,null,3,null,null,6,null,null,4],[6,null,null,null,null,5,null,4,null],[null,5,null,null,null,null,null,null,9],[null,null,null,null,2,null,null,null,null],[null,null,null,null,9,null,null,null,7],[1,null,null,null,null,7,8,null,null],[8,6,null,null,null,null,null,null,null]]');
 
 function cellID(i, j, n) {
   return 100*i + 10*j + n;
@@ -528,7 +530,7 @@ function keyHandler(e) {
   }
   if (e.key === "p") {
     clearGrid();
-    grid = structuredClone(puzzle_master);
+    grid = structuredClone(puzzle_dificil1);
     update();
     lockNumbers();
   }
