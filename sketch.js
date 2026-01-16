@@ -27,6 +27,8 @@ let puzzle_dificil2  = JSON.parse('[[null,4,null,null,2,5,null,8,null],[3,null,n
 let puzzle_dificil3  = JSON.parse('[[null,1,6,8,null,null,9,null,5],[null,5,2,6,null,null,null,3,null],[null,null,9,5,null,null,null,null,null],[null,null,null,4,9,null,7,5,null],[null,null,null,2,null,null,null,null,null],[null,9,null,null,null,3,null,null,null],[1,null,5,3,7,null,8,2,null],[null,null,null,null,8,null,null,null,7],[null,null,null,null,null,null,5,null,4]]');
 let puzzle_backtrack = JSON.parse('[[null,null,null,null,null,null,5,null,null],[null,null,null,null,null,9,null,null,null],[null,null,1,null,4,null,null,2,null],[null,null,null,5,null,null,null,null,null],[null,null,2,null,null,null,null,1,4],[null,3,null,7,null,null,null,null,null],[null,null,null,null,1,null,null,null,null],[null,8,null,null,null,null,7,null,null],[null,5,null,null,null,null,3,null,9]]');
 
+let puzzle_master = JSON.parse('[[4,2,5,9,3,1,6,7,8],[9,1,6,8,7,4,5,3,2],[7,8,3,2,5,6,9,1,4],[6,null,null,null,null,5,2,4,3],[2,5,null,null,null,3,null,null,9],[3,null,null,null,2,9,null,null,null],[5,null,null,null,9,8,null,null,7],[1,null,null,null,null,7,8,null,null],[8,6,7,null,null,2,null,9,null]]');
+
 function cellID(i, j, n) {
   return 100*i + 10*j + n;
 }
@@ -418,9 +420,17 @@ function _strategyLastRemainingCell(map) {
   for (let n = 0; n < 9; n++) {
     if (map.has(n) ) {
       let n_tips = map.get(n);
-      if (n_tips.length === 1) {
-        let tip = n_tips[0];
-        strongTips.set(tip.id(), tip);
+      let count = 0;
+      let out = null;
+      for (let i = 0; i < n_tips.length; i++) {
+        let tip = n_tips[i];
+        if (isDiscarded(tip.i, tip.j, tip.number) === false) {
+          count++;
+          out = tip;
+        }
+      }
+      if (count === 1) {
+        strongTips.set(out.id(), out);
       }
     }
   }
@@ -518,7 +528,7 @@ function keyHandler(e) {
   }
   if (e.key === "p") {
     clearGrid();
-    grid = structuredClone(puzzle_dificil3);
+    grid = structuredClone(puzzle_master);
     update();
     lockNumbers();
   }
